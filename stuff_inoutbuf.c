@@ -1,9 +1,7 @@
+#include <linux/slab.h>
 #include "stuff_inoutbuf.h"
 #include "request_length.h"
-#if 0
 #include "utils.h"
-#endif
-
 #include "kutpm.h"
 
 extern BYTE inout_buff[INOUTBUF_LEN];
@@ -64,7 +62,6 @@ int get_random_info(
     return 0;
 }
 
-#if 0
 int stuff_inoutbuf_oiap(void) {
     memset(inout_buff, 0, sizeof(inout_buff));
     UINT32 in_size = 2 + 4 + 4;
@@ -155,6 +152,7 @@ int get_osap_info(
     return 0;
 }
 
+
 int stuff_inoutbuf_createcrapkey(
     TPM_KEY_HANDLE parentHandle,
     TPM_SECRET parentAuth,
@@ -241,8 +239,8 @@ int get_wrappedkey_info(TPM_RESULT *res, TPM_KEY *wrappedKey) {
     tpm_unmarshal_UINT32(&ptr, &length, &size);
     tpm_unmarshal_TPM_RESULT(&ptr, &length, res);
     tpm_unmarshal_TPM_KEY(&ptr, &length, wrappedKey);
-    BYTE *dumpEncData = malloc(wrappedKey->encDataSize);
-    BYTE *dumppubKey = malloc(wrappedKey->pubKey.keyLength);
+    BYTE *dumpEncData = kmalloc(wrappedKey->encDataSize, GFP_KERNEL);
+    BYTE *dumppubKey = kmalloc(wrappedKey->pubKey.keyLength, GFP_KERNEL);
     if (dumppubKey == NULL || dumpEncData == NULL) {
         return -1;
     }
@@ -847,7 +845,7 @@ int stuff_inoutbuf_extend(TPM_PCRINDEX pcrNum, TPM_DIGEST *inDigest) {
     */
     tpm_marshal_TPM_PCRINDEX(&ptr, &length, pcrNum);
     tpm_marshal_TPM_DIGEST(&ptr, &length, inDigest);
-    printf_buf("pcr_extend()", inout_buff, sizeof(inout_buff));
+    //printf_buf("pcr_extend()", inout_buff, sizeof(inout_buff));
     return 0;
 }
 int get_pcr_extend_info(TPM_RESULT *res) {
@@ -889,7 +887,7 @@ int stuff_inoutbuf_read(
     tpm_marshal_TPM_COMMAND_CODE(&ptr, &length, ordinal);
 
     tpm_marshal_TPM_PCRINDEX(&ptr, &length, pcrIndex);
-    printf_buf("pcr_read()", inout_buff, sizeof(inout_buff));
+    //printf_buf("pcr_read()", inout_buff, sizeof(inout_buff));
     return 0;
 }
 
@@ -973,4 +971,3 @@ int stuff_inoutbuf_quote( UINT32 buf_size, TPM_AUTHHANDLE authHandle, TPM_NONCE 
 }
 #endif
 
-#endif

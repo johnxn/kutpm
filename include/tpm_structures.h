@@ -816,7 +816,7 @@ typedef struct tdTPM_SYMMETRIC_KEY {
   BYTE* data;
 } TPM_SYMMETRIC_KEY;
 #define sizeof_TPM_SYMMETRIC_KEY(s) (4 + 2 + 2 + s.size)
-#define free_TPM_SYMMETRIC_KEY(s) { if (s.size > 0) free(s.data); }
+#define free_TPM_SYMMETRIC_KEY(s) { if (s.size > 0) kfree(s.data); }
 
 /*
  * TPM_BOUND_DATA ([TPM_Part2], Section 9.5)
@@ -848,7 +848,7 @@ typedef struct tdTPM_RSA_KEY_PARMS {
 } TPM_RSA_KEY_PARMS;
 #define sizeof_TPM_RSA_KEY_PARMS(s) (4 + 4 + 4 + s.exponentSize)
 #define free_TPM_RSA_KEY_PARMS(s) { \
-  if (s.exponentSize > 0) free(s.exponent); }
+  if (s.exponentSize > 0) kfree(s.exponent); }
 
 /*
  * TPM_SYMMETRIC_KEY_PARMS ([TPM_Part2], Section 10.1.2)
@@ -861,7 +861,7 @@ typedef struct tdTPM_SYMMETRIC_KEY_PARMS {
   BYTE* IV;
 } TPM_SYMMETRIC_KEY_PARMS;
 #define sizeof_TPM_SYMMETRIC_KEY_PARMS(s) (4 + 4 + 4 + s.ivSize)
-#define free_TPM_SYMMETRIC_KEY_PARMS(s) { if (s.ivSize > 0) free(s.IV); }
+#define free_TPM_SYMMETRIC_KEY_PARMS(s) { if (s.ivSize > 0) kfree(s.IV); }
 
 /*
  * TPM_KEY_PARMS ([TPM_Part2], Section 10.1)
@@ -886,7 +886,7 @@ typedef struct tdTPM_KEY_PARMS {
     case TPM_ALG_DES: case TPM_ALG_3DES: \
     case TPM_ALG_AES192: case TPM_ALG_AES256: \
     free_TPM_SYMMETRIC_KEY_PARMS(s.parms.skp); break; \
-    default: free(s.parms.raw); } } }
+    default: kfree(s.parms.raw); } } }
 
 /*
  * TPM_STORE_PUBKEY ([TPM_Part2], Section 10.4)
@@ -898,7 +898,7 @@ typedef struct tdTPM_STORE_PUBKEY {
   BYTE* key;
 } TPM_STORE_PUBKEY;
 #define sizeof_TPM_STORE_PUBKEY(s) (4 + s.keyLength)
-#define free_TPM_STORE_PUBKEY(s) { if (s.keyLength > 0) free(s.key); }
+#define free_TPM_STORE_PUBKEY(s) { if (s.keyLength > 0) kfree(s.key); }
 
 /*
  * TPM_KEY ([TPM_Part2], Section 10.2)
@@ -926,8 +926,10 @@ typedef struct tdTPM_KEY {
   + sizeof_TPM_KEY_PARMS(s.algorithmParms) \
   + 4 + s.PCRInfoSize + sizeof_TPM_STORE_PUBKEY(s.pubKey) \
   + 4 + s.encDataSize)
-#define free_TPM_KEY(s) { if (s.encDataSize > 0) free(s.encData); \
+//#define free_TPM_KEY(s) { if (s.encDataSize > 0) kfree(s.encData); \
   free_TPM_KEY_PARMS(s.algorithmParms); free_TPM_STORE_PUBKEY(s.pubKey); }
+
+#define free_TPM_KEY(s) {kfree(s.encData); kfree(s.pubKey.key);}
 
 /*
  * TPM_PUBKEY ([TPM_Part2], Section 10.5)
@@ -1054,7 +1056,7 @@ typedef struct tdTPM_CERTIFY_INFO {
   + s.PCRInfoSize \
   + (s.tag == TPM_TAG_CERTIFY_INFO2 ? 4 + s.migrationAuthoritySize : 0))
 #define free_TPM_CERTIFY_INFO(s) { free_TPM_KEY_PARMS(s.algorithmParms); \
-  if (s.migrationAuthoritySize > 0) free(s.migrationAuthority); }
+  if (s.migrationAuthoritySize > 0) kfree(s.migrationAuthority); }
 
 /*
  * TPM_QUOTE_INFO Structure ([TPM_Part2], Section 11.3)
